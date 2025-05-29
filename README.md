@@ -1,9 +1,11 @@
 # recipe-web-app
 [Orbital 2025] - 13 Wonders
+
 AIM:
 We hope to create a web application that suggests recipes to users based on their preferences and ingredient availability, making cooking your own meals less intimidating. Our app will allow users to explore recipes by cuisine types, find dishes that match the ingredients they have on hand, and receive personalized recommendations based on past interactions. Additionally, highly-rated recipes will be highlighted to enhance discovery. By integrating these features, we aim to provide a seamless and intuitive cooking experience that encourages creativity, reduces food waste, and helps users make the most of their ingredients.
 
 Features:
+
 Feature 1: Search for recipes based on cuisine (core)
 Users are able to search for recipes based on type of cuisine (Chinese, Italian, Japanese, etc)
 Feature 2: Suggest recipes based on ingredients (core)
