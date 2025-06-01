@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+    {% for meal in meals %}
+    <div>
+      <p>{{meal.strMeal}}</p>
+      <img src="{{ meal.strMealThumb}}">
+
+      <form method="POST" action="/get-recipe">
+        <input type="hidden" name="idMeal" value="{{meal.idMeal}}">
+        <button type="submit">Choose this Meal</button>
+      </form>
+        
+    </div>
+    {% endfor %}
+</form>
+</body>
+</html>
