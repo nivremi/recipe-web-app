@@ -34,8 +34,8 @@ Set-up environment
 2. Install python packages using pip
    ```pip install -r requirements.txt```
 3. Install Node.js package
-   ```cd frontend
-   npm install```
+   ```cd frontend```
+   ```npm install```
 
 Start the web application
 1. execute run.bat (windows)
