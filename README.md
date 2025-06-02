@@ -21,3 +21,21 @@ Web app will store previous recipes looked at by the user and suggest similar re
 
 Feature 5: Search for recipes based on user rating (extension)
 Users are able to rate recipes on the web app, and highly rated recipes will appear on the front page 
+
+
+
+===================================================================================================
+Pre-requisites
+1. Install Python 3.11.4
+2. Install Node.js 22.16.0
+
+Set-up environment
+1. create python venv called "orbital"
+2. Install python packages using pip
+   ```pip install -r requirements.txt```
+3. Install Node.js package
+   ```cd frontend
+   npm install```
+
+Start the web application
+1. execute run.bat (windows)
