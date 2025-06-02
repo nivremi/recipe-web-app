@@ -39,3 +39,6 @@ Thumbs.db
 # Python Environment #
 orbital/
 __pycache__/
+
+# Node.JS Packages #
+node_modules/
