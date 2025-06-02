@@ -32,9 +32,9 @@ Pre-requisites
 Set-up environment
 1. create python venv called "orbital"
 2. Install python packages using pip
-   ```pip install -r requirements.txt```
+   <br>```pip install -r requirements.txt```
 3. Install Node.js package
-   ```cd frontend```
+   <br>```cd frontend```<br>
    ```npm install```
 
 Start the web application
