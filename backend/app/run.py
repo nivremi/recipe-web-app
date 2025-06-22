@@ -65,5 +65,29 @@ def get_recipe():
     }
     return jsonify(recipe)
 
+@app.route("/api/area", methods=["GET"])
+def get_area():
+    api_url = "https://www.themealdb.com/api/json/v1/1/list.php?a=list"
+    response = requests.get(api_url)
+    response.raise_for_status()
+    data = response.json()
+    areas = [item["strArea"] for item in data["meals"]]
+    return jsonify(areas)
+
+@app.route("/api/cuisine", methods=["GET"])
+def get_cuisine():
+    area = request.args.get("area")
+    api_url = f"www.themealdb.com/api/json/v1/1/filter.php?a={area}"
+    response = requests.get(api_url)
+    response.raise_for_status()
+    data = response.json()["meals"]
+    
+    # Return list of dicts with name and id
+    return jsonify([
+        {"name": meal["strMeal"], "id": meal["idMeal"]}
+        for meal in data
+    ])
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    print(get_cuisine())
+    # app.run(debug=True)
