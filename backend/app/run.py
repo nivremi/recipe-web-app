@@ -89,5 +89,4 @@ def get_cuisine():
     ])
 
 if __name__ == "__main__":
-    print(get_cuisine())
-    # app.run(debug=True)
+    app.run(debug=True)
