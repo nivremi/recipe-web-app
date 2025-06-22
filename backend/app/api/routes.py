@@ -1,7 +1,7 @@
 from flask import jsonify, request
 import requests
 import re
-from . import api_bp
+from .__init__ import api_bp
 
 @api_bp.route("/ingredients", methods=["GET"])
 def get_ingredients():
