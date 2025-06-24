@@ -2,9 +2,12 @@ from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_jwt_extended import JWTManager
 
 db = SQLAlchemy()
 DB_NAME = "db.sqlite"
+
+jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
@@ -17,7 +20,12 @@ def create_app():
     from .models import User
     with app.app_context():
         db.create_all()
+
     CORS(app)
+
+    app.config["JWT_SECRET_KEY"] = "a"
+    jwt.init_app(app)
+
 
     login_manager = LoginManager()
     login_manager.login_view = "auth.login"

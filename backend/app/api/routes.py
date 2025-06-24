@@ -1,7 +1,10 @@
 from flask import jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import requests
 import re
 from .__init__ import api_bp
+from ..__init__ import db
+from ..models import User
 
 @api_bp.route("/ingredients", methods=["GET"])
 def get_ingredients():
@@ -84,3 +87,33 @@ def get_cuisine():
         {"name": meal["strMeal"], "id": meal["idMeal"]}
         for meal in data
     ])
+
+@api_bp.route("/favourites", methods=["GET"])
+@jwt_required()
+def get_favourites():
+    username = get_jwt_identity()
+    user = User.query.filter_by(name=username).first()
+    return jsonify([int(entry) for entry in user.favourited.split(",")])
+
+@api_bp.route("/favourites", methods=["POST"])
+@jwt_required()
+def post_favourites():
+    entry = str(request.json.get("idMeal"))
+    username = get_jwt_identity()
+    print("this is the identity: ",username)
+    user = User.query.filter_by(name=username).first()
+    favourited = user.favourited.split(",")
+    if favourited == [""]:
+        favourited = [entry]
+    else:
+        if entry in favourited:
+            favourited.remove(entry)
+        else:
+            favourited.append(entry)
+    print("favourited", favourited)
+    user.favourited =",".join(favourited)
+    db.session.commit()
+    response = {"msg": "Success"}, 200
+    return response
+
+
