@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import logo from "./assets/logo.png";
+import { getToken, logout } from "./utils/auth";
+import { useNavigate } from "react-router-dom";
 
-// Define TypeScript interfaces
 interface Meal {
   id: string;
   name: string;
@@ -20,37 +21,86 @@ interface Recipe {
 export default function HomePage() {
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [selectedIngredient, setSelectedIngredient] = useState<string>("");
+  const [areas, setAreas] = useState<string[]>([]);
+  const [selectedArea, setSelectedArea] = useState<string>("");
   const [meals, setMeals] = useState<Meal[]>([]);
   const [selectedMeal, setSelectedMeal] = useState<string>("");
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [isFavourited, setIsFavourited] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"ingredient" | "cuisine">(
+    "ingredient"
+  );
+  const navigate = useNavigate();
 
-  // Fetch available ingredients on load
   useEffect(() => {
+    // Fetch ingredients and areas on component mount
     axios
       .get("http://localhost:5000/api/ingredients")
       .then((res) => setIngredients(res.data))
       .catch((err) => console.error("Error fetching ingredients:", err));
+
+    axios
+      .get("http://localhost:5000/api/area")
+      .then((res) => setAreas(res.data))
+      .catch((err) => console.error("Error fetching areas:", err));
   }, []);
 
-  // Fetch meals when an ingredient is selected
   useEffect(() => {
+    // Fetch meals based on selected ingredient or area
     if (selectedIngredient) {
       axios
         .get("http://localhost:5000/api/meals?ingredient=" + selectedIngredient)
         .then((res) => setMeals(res.data))
         .catch((err) => console.error("Error fetching meals:", err));
-    }
-  }, [selectedIngredient]);
-
-  // Fetch recipe when both ingredient and meal are selected
-  const fetchRecipe = () => {
-    if (selectedMeal) {
+    } else if (selectedArea) {
       axios
-        .get("http://localhost:5000/api/recipe?meal=" + selectedMeal)
-        .then((res) => setRecipe(res.data))
-        .catch((err) => console.error("Error fetching recipe:", err));
+        .get("http://localhost:5000/api/cuisine?area=" + selectedArea)
+        .then((res) => setMeals(res.data))
+        .catch((err) => console.error("Error fetching cuisine:", err));
     }
+  }, [selectedIngredient, selectedArea]);
+
+  const fetchRecipe = async () => {
+    // Fetch the recipe for the selected meal
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/recipe?meal=${selectedMeal}`
+      );
+      setRecipe(res.data);
+
+      // Check if the recipe is favourited
+      if (getToken()) {
+        const favRes = await axios.get("http://localhost:5000/api/favourites", {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        setIsFavourited(favRes.data.includes(parseInt(selectedMeal)));
+      }
+    } catch (err) {
+      console.error("Error fetching recipe or favourites:", err);
+    }
+  };
+
+  const toggleFavourite = async () => {
+    // Toggle favourite status for the recipe
+    try {
+      await axios.post(
+        "http://localhost:5000/api/favourites",
+        { idMeal: selectedMeal },
+        {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        }
+      );
+      setIsFavourited((prev) => !prev);
+    } catch (err) {
+      console.error("Error toggling favourite:", err);
+    }
+  };
+
+  const handleLogout = () => {
+    // Log the user out and redirect to the login page
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -58,35 +108,133 @@ export default function HomePage() {
       className="container py-5"
       style={{ backgroundColor: "#ffffff", minHeight: "100vh" }}
     >
-      <div className="text-center mb-4">
+      {/* Header with logo and authentication buttons */}
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <img
           src={logo}
           alt="Find a Recipe"
-          style={{ maxWidth: "400px", height: "auto" }}
+          style={{ maxWidth: "200px", height: "auto" }}
         />
+        <div>
+          {getToken() ? (
+            <>
+              <button
+                className="btn btn-outline-danger me-2"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate("/favourites")}
+              >
+                Favourites
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="btn btn-outline-primary me-2"
+                onClick={() => navigate("/login")}
+              >
+                Login
+              </button>
+              <button
+                className="btn btn-outline-secondary"
+                onClick={() => navigate("/signup")}
+              >
+                Sign Up
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
+      {/* Ingredient and Cuisine selection */}
       <div className="mb-4">
-        <label className="form-label">Choose an Ingredient</label>
-        <select
-          className="form-select"
-          value={selectedIngredient}
-          onChange={(e) => {
-            setSelectedIngredient(e.target.value);
-            setMeals([]);
-            setSelectedMeal("");
-            setRecipe(null);
-          }}
-        >
-          <option value="">-- Select Ingredient --</option>
-          {ingredients.map((ing) => (
-            <option key={ing} value={ing}>
-              {ing}
-            </option>
-          ))}
-        </select>
+        <ul className="nav nav-tabs">
+          <li className="nav-item">
+            <button
+              className={`nav-link ${
+                activeTab === "ingredient" ? "active" : ""
+              }`}
+              onClick={() => {
+                setActiveTab("ingredient");
+                setSelectedIngredient("");
+                setSelectedArea("");
+                setMeals([]);
+                setSelectedMeal("");
+                setRecipe(null);
+              }}
+            >
+              By Ingredient
+            </button>
+          </li>
+          <li className="nav-item">
+            <button
+              className={`nav-link ${activeTab === "cuisine" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("cuisine");
+                setSelectedIngredient("");
+                setSelectedArea("");
+                setMeals([]);
+                setSelectedMeal("");
+                setRecipe(null);
+              }}
+            >
+              By Cuisine
+            </button>
+          </li>
+        </ul>
+
+        <div className="mt-3">
+          {activeTab === "ingredient" ? (
+            <div>
+              <label className="form-label">Select an Ingredient</label>
+              <select
+                className="form-select"
+                value={selectedIngredient}
+                onChange={(e) => {
+                  setSelectedIngredient(e.target.value);
+                  setMeals([]);
+                  setSelectedMeal("");
+                  setRecipe(null);
+                }}
+              >
+                <option value="">-- Select Ingredient --</option>
+                {ingredients.map((ing) => (
+                  <option key={ing} value={ing}>
+                    {ing}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="form-label">Select a Cuisine</label>
+              <select
+                className="form-select"
+                value={selectedArea}
+                onChange={(e) => {
+                  setSelectedArea(e.target.value);
+                  setMeals([]);
+                  setSelectedMeal("");
+                  setRecipe(null);
+                }}
+              >
+                <option value="">-- Select Cuisine --</option>
+                {areas.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Meal selection */}
       {meals.length > 0 && (
         <div className="mb-4">
           <label className="form-label">Choose a Meal</label>
@@ -108,21 +256,34 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Search button */}
       <button
         className="btn btn-primary mb-4"
         onClick={fetchRecipe}
         style={{ backgroundColor: "#EFB72E", color: "black", border: "black" }}
-        disabled={!selectedIngredient && !selectedMeal}
+        disabled={!selectedMeal}
       >
         Let's Cook!🔥
       </button>
+
+      {/* Recipe details */}
       {recipe && (
         <>
           <div className="card">
             <div className="row g-0">
               <div className="col-md-8">
                 <div className="card-body">
-                  <h4 className="card-title">{recipe.title}</h4>
+                  <h4 className="card-title d-flex justify-content-between">
+                    {recipe.title}
+                    {getToken() && (
+                      <button
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={toggleFavourite}
+                      >
+                        {isFavourited ? "❤️ Favourited" : "🤍 Favourite"}
+                      </button>
+                    )}
+                  </h4>
                   <p className="card-text">{recipe.description}</p>
                   <p>
                     <strong>Time/Origin:</strong> {recipe.time}
@@ -147,8 +308,6 @@ export default function HomePage() {
                   </ol>
                 </div>
               </div>
-
-              {/* Right: Image */}
               <div className="col-md-4">
                 <img
                   src={recipe.image}
@@ -161,14 +320,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Image Modal */}
+          {/* Image modal */}
           {showImageModal && (
             <div
               className="modal fade show"
-              style={{
-                display: "block",
-                backgroundColor: "rgba(0,0,0,0.8)",
-              }}
+              style={{ display: "block", backgroundColor: "rgba(0,0,0,0.8)" }}
               onClick={() => setShowImageModal(false)}
             >
               <div className="modal-dialog modal-dialog-centered">

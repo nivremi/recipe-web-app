@@ -77,7 +77,7 @@ def get_area():
 @api_bp.route("/cuisine", methods=["GET"])
 def get_cuisine():
     area = request.args.get("area")
-    api_url = f"www.themealdb.com/api/json/v1/1/filter.php?a={area}"
+    api_url = f"https://www.themealdb.com/api/json/v1/1/filter.php?a={area}"
     response = requests.get(api_url)
     response.raise_for_status()
     data = response.json()["meals"]
