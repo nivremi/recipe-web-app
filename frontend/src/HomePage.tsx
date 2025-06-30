@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import logo from "./assets/logo.png";
-import { getToken, logout } from "./utils/auth";
+import banner from "./assets/banner.png";
+import { getToken, logout, getUser } from "./utils/auth";
 import { useNavigate } from "react-router-dom";
 
 interface Meal {
@@ -34,7 +35,6 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch ingredients and areas on component mount
     axios
       .get("http://localhost:5000/api/ingredients")
       .then((res) => setIngredients(res.data))
@@ -47,7 +47,6 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Fetch meals based on selected ingredient or area
     if (selectedIngredient) {
       axios
         .get("http://localhost:5000/api/meals?ingredient=" + selectedIngredient)
@@ -62,14 +61,12 @@ export default function HomePage() {
   }, [selectedIngredient, selectedArea]);
 
   const fetchRecipe = async () => {
-    // Fetch the recipe for the selected meal
     try {
       const res = await axios.get(
         `http://localhost:5000/api/recipe?meal=${selectedMeal}`
       );
       setRecipe(res.data);
 
-      // Check if the recipe is favourited
       if (getToken()) {
         const favRes = await axios.get("http://localhost:5000/api/favourites", {
           headers: { Authorization: `Bearer ${getToken()}` },
@@ -82,7 +79,6 @@ export default function HomePage() {
   };
 
   const toggleFavourite = async () => {
-    // Toggle favourite status for the recipe
     try {
       await axios.post(
         "http://localhost:5000/api/favourites",
@@ -98,17 +94,17 @@ export default function HomePage() {
   };
 
   const handleLogout = () => {
-    // Log the user out and redirect to the login page
     logout();
-    navigate("/login");
+    navigate("/");
   };
+
+  const username = getUser();
 
   return (
     <div
       className="container py-5"
       style={{ backgroundColor: "#ffffff", minHeight: "100vh" }}
     >
-      {/* Header with logo and authentication buttons */}
       <div className="d-flex justify-content-between align-items-center mb-4">
         <img
           src={logo}
@@ -150,7 +146,38 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Ingredient and Cuisine selection */}
+      <div
+        className="my-4 position-relative text-center"
+        style={{
+          backgroundImage: `url(${banner})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          height: "200px",
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            padding: "1rem 2rem",
+            borderRadius: "8px",
+          }}
+        >
+          <h2
+            className="fw-bold m-0"
+            style={{ fontFamily: "'Comic Sans MS', cursive, sans-serif" }}
+          >
+            {getToken() && username
+              ? `Welcome ${username}, what shall we cook today? 🍽️`
+              : "Welcome User! What shall we cook today? 🍽️"}
+          </h2>
+        </div>
+      </div>
+
       <div className="mb-4">
         <ul className="nav nav-tabs">
           <li className="nav-item">
@@ -234,7 +261,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Meal selection */}
       {meals.length > 0 && (
         <div className="mb-4">
           <label className="form-label">Choose a Meal</label>
@@ -256,17 +282,21 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Search button */}
-      <button
-        className="btn btn-primary mb-4"
-        onClick={fetchRecipe}
-        style={{ backgroundColor: "#EFB72E", color: "black", border: "black" }}
-        disabled={!selectedMeal}
-      >
-        Let's Cook!🔥
-      </button>
+      <div className="text-center mb-4">
+        <button
+          className="btn btn-primary"
+          onClick={fetchRecipe}
+          style={{
+            backgroundColor: "#EFB72E",
+            color: "black",
+            border: "black",
+          }}
+          disabled={!selectedMeal}
+        >
+          Let's Cook!🔥
+        </button>
+      </div>
 
-      {/* Recipe details */}
       {recipe && (
         <>
           <div className="card">
@@ -320,7 +350,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Image modal */}
           {showImageModal && (
             <div
               className="modal fade show"

@@ -25,6 +25,14 @@ export default function SignupPage() {
 
   return (
     <div className="container py-5">
+      {/* Back button */}
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={() => navigate("/")}
+        type="button"
+      >
+        ← Back to Home
+      </button>
       <h2 className="mb-4">Sign Up</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSignup}>
