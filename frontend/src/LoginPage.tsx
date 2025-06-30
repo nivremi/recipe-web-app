@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
-import { saveToken } from "./utils/auth";
-import { useNavigate } from "react-router-dom";
+import { saveToken, saveUser } from "./utils/auth";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -17,6 +17,7 @@ export default function LoginPage() {
         password,
       });
       saveToken(res.data.access_token);
+      saveUser(username);
       navigate("/");
     } catch (err) {
       setError("Invalid credentials");
@@ -27,6 +28,16 @@ export default function LoginPage() {
     <div className="container py-5">
       <h2 className="mb-4">Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* Back button */}
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={() => navigate("/")}
+        type="button"
+      >
+        ← Back to Home
+      </button>
+
       <form onSubmit={handleLogin}>
         <div className="mb-3">
           <label className="form-label">Username</label>
@@ -51,6 +62,21 @@ export default function LoginPage() {
           Login
         </button>
       </form>
+
+      {/* Signup prompt */}
+      <p className="mt-3">
+        Not a user yet? Sign up{" "}
+        <Link
+          to="/signup"
+          style={{
+            textDecoration: "underline",
+            fontWeight: "bold",
+            color: "#0d6efd",
+          }}
+        >
+          here
+        </Link>
+      </p>
     </div>
   );
 }

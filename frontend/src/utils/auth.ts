@@ -9,3 +9,12 @@ export const getToken = (): string | null => {
 export const logout = () => {
   localStorage.removeItem("token");
 };
+
+export function saveUser(username: string) {
+  localStorage.setItem("username", username);
+}
+
+export function getUser(): string | null {
+  return localStorage.getItem("username");
+}
+
