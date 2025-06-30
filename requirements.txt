@@ -5,6 +5,7 @@ click==8.2.1
 colorama==0.4.6
 Flask==3.1.1
 flask-cors==6.0.0
+Flask-JWT-Extended==4.7.1
 Flask-Login==0.6.3
 Flask-SQLAlchemy==3.1.1
 greenlet==3.2.3
@@ -16,6 +17,7 @@ livereload==2.7.1
 markdown2==2.5.3
 MarkupSafe==3.0.2
 Pygments==2.19.1
+PyJWT==2.10.1
 python-dotenv==1.1.0
 requests==2.32.3
 SQLAlchemy==2.0.41

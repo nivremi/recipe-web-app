@@ -93,14 +93,13 @@ def get_cuisine():
 def get_favourites():
     username = get_jwt_identity()
     user = User.query.filter_by(name=username).first()
-    return jsonify([int(entry) for entry in user.favourited.split(",")])
+    return jsonify([int(entry) for entry in user.favourited.split(",") if entry])
 
 @api_bp.route("/favourites", methods=["POST"])
 @jwt_required()
 def post_favourites():
     entry = str(request.json.get("idMeal"))
     username = get_jwt_identity()
-    print("this is the identity: ",username)
     user = User.query.filter_by(name=username).first()
     favourited = user.favourited.split(",")
     if favourited == [""]:
@@ -110,7 +109,6 @@ def post_favourites():
             favourited.remove(entry)
         else:
             favourited.append(entry)
-    print("favourited", favourited)
     user.favourited =",".join(favourited)
     db.session.commit()
     response = {"msg": "Success"}, 200
