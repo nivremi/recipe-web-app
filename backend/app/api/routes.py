@@ -25,6 +25,7 @@ def cleaned_recipe(data):
     cleaned_steps = [re.sub(r"^\s*\d+\.\s*", "", line).strip() for line in lines if line.strip()]
 
     recipe = {
+        "id": data["idMeal"],
         "title": data["strMeal"],
         "description": data.get("strCategory", ""),
         "time": data.get("strArea", ""),
@@ -107,19 +108,24 @@ def get_favourites():
 @api_bp.route("/favourites", methods=["POST"])
 @jwt_required()
 def post_favourites():
-    entry = str(request.json.get("idMeal"))
-    username = get_jwt_identity()
-    user = User.query.filter_by(name=username).first()
-    favourited = user.favourited.split(",")
-    if favourited == [""]:
-        favourited = [entry]
-    else:
-        if entry in favourited:
-            favourited.remove(entry)
+    entry = request.json.get("idMeal")
+    if entry:
+        entry = str(entry)
+        username = get_jwt_identity()
+        user = User.query.filter_by(name=username).first()
+        favourited = user.favourited.split(",")
+        if favourited == [""]:
+            favourited = [entry]
         else:
-            favourited.append(entry)
-    user.favourited =",".join(favourited)
-    db.session.commit()
-    response = {"msg": "Success"}, 200
+            if entry in favourited:
+                favourited.remove(entry)
+            else:
+                favourited.append(entry)
+        user.favourited =",".join(favourited)
+        db.session.commit()
+        response = {"msg": "Success"}, 200
+    else:
+        response = {"msg": "Meal not found"}, 404
+    
     return response
 

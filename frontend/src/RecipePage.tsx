@@ -5,6 +5,7 @@ import logo from "./assets/logo.png";
 import { getToken } from "./utils/auth";
 
 interface Recipe {
+  id: string;
   title: string;
   description: string;
   time: string;
@@ -27,18 +28,19 @@ export default function RecipePage() {
         const endpoint = id
           ? `http://localhost:5000/api/recipe?meal=${id}`
           : `http://localhost:5000/api/recipe`;
+
         const res = await axios.get(endpoint);
         setRecipe(res.data);
 
         // Check favourite status if logged in
-        if (getToken() && id) {
+        if (getToken() && recipe?.id) {
           const favRes = await axios.get(
             "http://localhost:5000/api/favourites",
             {
               headers: { Authorization: `Bearer ${getToken()}` },
             }
           );
-          setIsFavourited(favRes.data.includes(parseInt(id)));
+          setIsFavourited(favRes.data.includes(parseInt(recipe.id)));
         }
       } catch (err) {
         setError("FAILED TO LOAD RECIPE :(");
@@ -58,7 +60,7 @@ export default function RecipePage() {
     try {
       await axios.post(
         "http://localhost:5000/api/favourites",
-        { idMeal: id },
+        { idMeal: recipe?.id },
         {
           headers: {
             Authorization: `Bearer ${getToken()}`,
