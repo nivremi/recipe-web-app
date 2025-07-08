@@ -71,12 +71,6 @@ def get_recipe():
 
     data = response.json()["meals"][0]
 
-    # DEBUG PRINTS START
-    print("DEBUG: Type of data =", type(data))
-    print("DEBUG: Data keys =", list(data.keys()))
-    print("DEBUG: Sample ingredient field =", data.get("strIngredient1"))
-    # DEBUG PRINTS END
-
     return cleaned_recipe(data)
 
 
