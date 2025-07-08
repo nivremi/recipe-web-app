@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "./assets/logo.png";
+import { getToken } from "./utils/auth";
 
 interface Recipe {
   title: string;
@@ -17,6 +18,7 @@ export default function RecipePage() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isFavourited, setIsFavourited] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,14 +29,47 @@ export default function RecipePage() {
           : `http://localhost:5000/api/recipe`;
         const res = await axios.get(endpoint);
         setRecipe(res.data);
+
+        // Check favourite status if logged in
+        if (getToken() && id) {
+          const favRes = await axios.get(
+            "http://localhost:5000/api/favourites",
+            {
+              headers: { Authorization: `Bearer ${getToken()}` },
+            }
+          );
+          setIsFavourited(favRes.data.includes(parseInt(id)));
+        }
       } catch (err) {
-        setError("Failed to load recipe");
+        setError("FAILED TO LOAD RECIPE :(");
       } finally {
         setLoading(false);
       }
     };
     fetchRecipe();
   }, [id]);
+
+  const handleFavouriteToggle = async () => {
+    if (!getToken()) {
+      alert("Login/Signup to save your favourite recipes!");
+      return;
+    }
+
+    try {
+      await axios.post(
+        "http://localhost:5000/api/favourites",
+        { idMeal: id },
+        {
+          headers: {
+            Authorization: `Bearer ${getToken()}`,
+          },
+        }
+      );
+      setIsFavourited((prev) => !prev);
+    } catch (error) {
+      console.error("Failed to update favourites", error);
+    }
+  };
 
   if (loading) return <p>Loading recipe...</p>;
   if (error) return <p>{error}</p>;
@@ -51,7 +86,19 @@ export default function RecipePage() {
         ← Back to Home
       </button>
       <h1>{recipe.title}</h1>
-      <img src={recipe.image} alt={recipe.title} className="img-fluid mb-4" />
+
+      <img src={recipe.image} alt={recipe.title} className="img-fluid mb-3" />
+
+      <div className="mb-4">
+        <button
+          className={`btn ${
+            isFavourited ? "btn-danger" : "btn-outline-primary"
+          }`}
+          onClick={handleFavouriteToggle}
+        >
+          {isFavourited ? "Remove from Favourites ❤️" : "Add to Favourites 🤍"}
+        </button>
+      </div>
 
       <p>
         <strong>Category:</strong> {recipe.description}
