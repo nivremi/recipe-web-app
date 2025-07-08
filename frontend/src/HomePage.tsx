@@ -55,8 +55,6 @@ export default function HomePage() {
   const fetchRecipe = () => {
     if (selectedMeal) {
       navigate(`/recipe/${selectedMeal}`);
-    } else {
-      navigate(`/recipe/`);
     }
   };
 

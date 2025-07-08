@@ -1,41 +1,38 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.png"
+import logo from "./assets/logo.png";
 
-interface MealDBRecipe {
-  idMeal: string;
-  strMeal: string;
-  strMealThumb: string;
-  strInstructions: string;
+interface Recipe {
+  title: string;
+  description: string;
+  time: string;
+  ingredients: string[];
+  steps: string[];
+  image: string;
 }
 
 export default function RecipePage() {
   const { id } = useParams<{ id: string }>();
-  const [recipe, setRecipe] = useState<MealDBRecipe | null>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchRecipe() {
+    const fetchRecipe = async () => {
       try {
-        const res = await axios.get(
-          `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${id}`
-        );
-        const meals = res.data.meals;
-        if (meals && meals.length > 0) {
-          setRecipe(meals[0]);
-        } else {
-          setError("Recipe not found");
-        }
+        const endpoint = id
+          ? `http://localhost:5000/api/recipe?meal=${id}`
+          : `http://localhost:5000/api/recipe`;
+        const res = await axios.get(endpoint);
+        setRecipe(res.data);
       } catch (err) {
         setError("Failed to load recipe");
       } finally {
         setLoading(false);
       }
-    }
+    };
     fetchRecipe();
   }, [id]);
 
@@ -46,27 +43,37 @@ export default function RecipePage() {
   return (
     <div className="container py-5">
       <img
-          src={logo}
-          alt="Find a Recipe"
-          style={{ maxWidth: "200px", height: "auto" }}
-        />
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => navigate("/")}
-        type="button"
-      >
+        src={logo}
+        alt="Find a Recipe"
+        style={{ maxWidth: "200px", height: "auto" }}
+      />
+      <button className="btn btn-secondary mb-3" onClick={() => navigate("/")}>
         ← Back to Home
       </button>
-      <h1>{recipe.strMeal}</h1>
-      <img
-        src={recipe.strMealThumb}
-        alt={recipe.strMeal}
-        style={{ maxWidth: "100%", height: "auto" }}
-      />
+      <h1>{recipe.title}</h1>
+      <img src={recipe.image} alt={recipe.title} className="img-fluid mb-4" />
+
+      <p>
+        <strong>Category:</strong> {recipe.description}
+      </p>
+      <p>
+        <strong>Area:</strong> {recipe.time}
+      </p>
 
       <div className="mt-4">
-        <h3>Instructions</h3>
-        <p style={{ whiteSpace: "pre-line" }}>{recipe.strInstructions}</p>
+        <h4>Ingredients</h4>
+        <ul>
+          {recipe.ingredients.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+
+        <h4>Instructions</h4>
+        <ol>
+          {recipe.steps.map((step, index) => (
+            <li key={index}>{step}</li>
+          ))}
+        </ol>
       </div>
     </div>
   );
