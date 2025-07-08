@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getToken } from "./utils/auth";
 import { useNavigate } from "react-router-dom";
+import logo from "./assets/logo.png";
 
 interface MealCard {
   id: string;
@@ -64,7 +65,20 @@ export default function FavouritesPage() {
 
   return (
     <div className="container py-5">
-      <h2>Your Favourite Recipes</h2>
+      <img
+          src={logo}
+          alt="Find a Recipe"
+          style={{ maxWidth: "200px", height: "auto" }}
+        />
+      <h2 className="mb-4 text-center"> Your Favourite Recipes </h2>
+      {/* Back button */}
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={() => navigate("/")}
+        type="button"
+      >
+        ← Back to Home
+      </button>
       <div className="row">
         {favourites.map((meal) => (
           <div className="col-md-4 mb-4" key={meal.id}>

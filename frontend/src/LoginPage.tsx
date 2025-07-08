@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { saveToken, saveUser } from "./utils/auth";
 import { useNavigate, Link } from "react-router-dom";
+import logo from "./assets/logo.png";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -26,7 +27,12 @@ export default function LoginPage() {
 
   return (
     <div className="container py-5">
-      <h2 className="mb-4">Login</h2>
+      <img
+          src={logo}
+          alt="Find a Recipe"
+          style={{ maxWidth: "200px", height: "auto" }}
+        />
+      <h2 className="mb-4 text-center">Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
       {/* Back button */}

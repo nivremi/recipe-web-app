@@ -1,16 +1,23 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import logo from "./assets/logo.png";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState(""); // New
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     try {
       await axios.post("http://localhost:5000/auth/signup", {
         username,
@@ -25,7 +32,12 @@ export default function SignupPage() {
 
   return (
     <div className="container py-5">
-      {/* Back button */}
+      <img
+          src={logo}
+          alt="Find a Recipe"
+          style={{ maxWidth: "200px", height: "auto" }}
+        />
+      <h2 className="mb-4 text-center">Sign Up</h2>
       <button
         className="btn btn-secondary mb-3"
         onClick={() => navigate("/")}
@@ -33,7 +45,6 @@ export default function SignupPage() {
       >
         ← Back to Home
       </button>
-      <h2 className="mb-4">Sign Up</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSignup}>
         <div className="mb-3">
@@ -64,7 +75,24 @@ export default function SignupPage() {
             required
           />
         </div>
-        <button className="btn btn-primary" type="submit">
+        <div className="mb-3">
+          <label className="form-label">Re-enter Password</label>
+          <input
+            type="password"
+            className="form-control"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+        {confirmPassword && password !== confirmPassword && (
+          <div className="text-danger mb-3">Passwords do not match</div>
+        )}
+        <button
+          className="btn btn-primary"
+          type="submit"
+          disabled={password !== confirmPassword}
+        >
           Sign Up
         </button>
       </form>

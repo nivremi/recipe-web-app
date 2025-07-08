@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import logo from "./assets/logo.png"
 
 interface MealDBRecipe {
   idMeal: string;
@@ -14,6 +16,7 @@ export default function RecipePage() {
   const [recipe, setRecipe] = useState<MealDBRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchRecipe() {
@@ -42,6 +45,18 @@ export default function RecipePage() {
 
   return (
     <div className="container py-5">
+      <img
+          src={logo}
+          alt="Find a Recipe"
+          style={{ maxWidth: "200px", height: "auto" }}
+        />
+      <button
+        className="btn btn-secondary mb-3"
+        onClick={() => navigate("/")}
+        type="button"
+      >
+        ← Back to Home
+      </button>
       <h1>{recipe.strMeal}</h1>
       <img
         src={recipe.strMealThumb}
