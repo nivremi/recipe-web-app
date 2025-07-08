@@ -80,10 +80,15 @@ export default function FavouritesPage() {
       <img
         src={logo}
         alt="Find a Recipe"
-        style={{ maxWidth: "200px", height: "auto" }}
+        onClick={() => navigate("/")}
+        style={{
+          maxWidth: "250px",
+          height: "auto",
+          cursor: "pointer",
+        }}
       />
-      <h2 className="mb-4 text-center">Your Favourite Recipes 💖</h2>
 
+      <h2 className="mb-4 text-center">Your Favourite Recipes 💖</h2>
       <button
         className="btn btn-secondary mb-4"
         onClick={() => navigate("/")}
@@ -107,7 +112,7 @@ export default function FavouritesPage() {
                   src={meal.image}
                   className="card-img-top"
                   alt={meal.name}
-                  style={{ objectFit: "cover", height: "200px" }}
+                  style={{ objectFit: "cover", height: "auto" }}
                   onClick={() => handleClick(meal.id)}
                 />
                 <div className="d-flex justify-content-end px-3 mt-2">
