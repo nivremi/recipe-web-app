@@ -78,6 +78,18 @@ export default function HomePage() {
     }
   };
 
+  const fetchRandomRecipe = async () => {
+  try {
+    const res = await axios.get("http://localhost:5000/api/recipe");
+    const recipeData = res.data;
+    
+    // Redirect to RecipePage with the meal ID
+    navigate(`/recipe/${recipeData.idMeal}`);
+  } catch (err) {
+    console.error("Error fetching random recipe:", err);
+  }
+};
+
   const toggleFavourite = async () => {
     try {
       await axios.post(
@@ -282,9 +294,9 @@ export default function HomePage() {
         </div>
       )}
 
-      <div className="text-center mb-4">
+      <div className="mb-4 text-center">
         <button
-          className="btn btn-primary"
+          className="btn btn-primary me-2"
           onClick={fetchRecipe}
           style={{
             backgroundColor: "#EFB72E",
@@ -294,6 +306,17 @@ export default function HomePage() {
           disabled={!selectedMeal}
         >
           Let's Cook!🔥
+        </button>
+        <button
+        className="btn btn-primary"
+          onClick={fetchRandomRecipe}
+          style={{
+            backgroundColor: "#65C174",
+            color: "black",
+            border: "black",
+          }}
+        >
+          Surprise Me! ✨
         </button>
       </div>
 

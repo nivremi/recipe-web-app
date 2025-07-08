@@ -6,6 +6,34 @@ from .__init__ import api_bp
 from ..__init__ import db
 from ..models import User
 
+def cleaned_recipe(data):
+    #  Collect ingredients and measures
+    ingredients = []
+    for i in range(1, 21):
+        ingredient = data.get(f"strIngredient{i}")
+        measure = data.get(f"strMeasure{i}")
+        if ingredient and ingredient.strip():
+            ingredients.append(f"{measure.strip()} {ingredient.strip()}")
+
+    # Clean and split instructions
+    raw_instructions = data["strInstructions"] or ""
+    # Replace \r\n with actual line breaks
+    raw_instructions = raw_instructions.replace("\r\n", "\n")
+    # Split into lines
+    lines = raw_instructions.split("\n")
+    # Remove leading numbering like "0. ", "1. ", etc.
+    cleaned_steps = [re.sub(r"^\s*\d+\.\s*", "", line).strip() for line in lines if line.strip()]
+
+    recipe = {
+        "title": data["strMeal"],
+        "description": data.get("strCategory", ""),
+        "time": data.get("strArea", ""),
+        "ingredients": ingredients,
+        "steps": cleaned_steps,
+        "image" : data.get("strMealThumb")
+    }
+    return jsonify(recipe)
+
 @api_bp.route("/ingredients", methods=["GET"])
 def get_ingredients():
     api_url = "https://www.themealdb.com/api/json/v1/1/list.php?i=list"
@@ -33,37 +61,24 @@ def get_meals():
 @api_bp.route("/recipe", methods=["GET"])
 def get_recipe():
     meal_id = request.args.get("meal")
-    api_url = f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={meal_id}"
+    if meal_id:
+        api_url = f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={meal_id}"
+    else:
+        api_url = "https://www.themealdb.com/api/json/v1/1/random.php"
+
     response = requests.get(api_url)
     response.raise_for_status()
+
     data = response.json()["meals"][0]
 
-    # Collect ingredients and measures
-    ingredients = []
-    for i in range(1, 21):
-        ingredient = data.get(f"strIngredient{i}")
-        measure = data.get(f"strMeasure{i}")
-        if ingredient and ingredient.strip():
-            ingredients.append(f"{measure.strip()} {ingredient.strip()}")
+    # DEBUG PRINTS START
+    print("DEBUG: Type of data =", type(data))
+    print("DEBUG: Data keys =", list(data.keys()))
+    print("DEBUG: Sample ingredient field =", data.get("strIngredient1"))
+    # DEBUG PRINTS END
 
-    # Clean and split instructions
-    raw_instructions = data["strInstructions"] or ""
-    # Replace \r\n with actual line breaks
-    raw_instructions = raw_instructions.replace("\r\n", "\n")
-    # Split into lines
-    lines = raw_instructions.split("\n")
-    # Remove leading numbering like "0. ", "1. ", etc.
-    cleaned_steps = [re.sub(r"^\s*\d+\.\s*", "", line).strip() for line in lines if line.strip()]
+    return cleaned_recipe(data)
 
-    recipe = {
-        "title": data["strMeal"],
-        "description": data.get("strCategory", ""),
-        "time": data.get("strArea", ""),
-        "ingredients": ingredients,
-        "steps": cleaned_steps,
-        "image" : data.get("strMealThumb")
-    }
-    return jsonify(recipe)
 
 @api_bp.route("/area", methods=["GET"])
 def get_area():
@@ -113,5 +128,4 @@ def post_favourites():
     db.session.commit()
     response = {"msg": "Success"}, 200
     return response
-
 
