@@ -29,7 +29,7 @@ export default function RecipePage() {
           ? `http://localhost:5000/api/recipe?meal=${id}`
           : `http://localhost:5000/api/recipe`;
 
-        const res = await axios.get(endpoint);
+        const res = await axios.get(endpoint, {withCredentials: true});
         setRecipe(res.data);
 
         // Check favourite status if logged in

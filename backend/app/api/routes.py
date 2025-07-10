@@ -1,7 +1,8 @@
-from flask import jsonify, request
+from flask import jsonify, request, make_response
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import requests
 import re
+import json
 from .__init__ import api_bp
 from ..__init__ import db
 from ..models import User
@@ -59,6 +60,33 @@ def get_meals():
         for meal in data
     ])
 
+def set_cookie(meal_id, data):
+    curr_cookie = get_cookies().json
+    print(f"From set cookie: {curr_cookie}")
+    if not curr_cookie or type(curr_cookie) == tuple:
+        cookie_value = []
+    else:
+        cookie_value = curr_cookie
+    cookie_value.insert(0, int(meal_id))
+    response = make_response(data)
+    response.set_cookie("meal_history", json.dumps(list(set(cookie_value))[:3]), max_age=3600, path="/")
+
+    return response
+
+
+@api_bp.route("/history", methods=["GET"])
+def get_cookies():
+    cookie_value = request.cookies.get("meal_history")
+    if cookie_value:
+        cookie_value = json.loads(cookie_value)
+        print(f"from get cookie {cookie_value}")
+        if type(cookie_value) == list and all(type(i) == int for i in cookie_value):
+            return jsonify(cookie_value)
+        else:
+            return {"msg": "Malformed Cookies"}, 200
+    else:
+        return {"msg": "View a meal to add to history"}, 404
+
 @api_bp.route("/recipe", methods=["GET"])
 def get_recipe():
     meal_id = request.args.get("meal")
@@ -71,8 +99,9 @@ def get_recipe():
     response.raise_for_status()
 
     data = response.json()["meals"][0]
+    meal_id = data["idMeal"]
 
-    return cleaned_recipe(data)
+    return set_cookie(meal_id, cleaned_recipe(data))
 
 
 @api_bp.route("/area", methods=["GET"])

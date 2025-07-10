@@ -6,3 +6,4 @@ from .__init__ import profile_bp
 @login_required
 def home():
     return render_template("profile.html", name=current_user.name)
+    

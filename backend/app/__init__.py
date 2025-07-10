@@ -21,7 +21,7 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    CORS(app)
+    CORS(app, supports_credentials=True, origins=["http://localhost:3001"])
 
     app.config["JWT_SECRET_KEY"] = "a"
     jwt.init_app(app)
