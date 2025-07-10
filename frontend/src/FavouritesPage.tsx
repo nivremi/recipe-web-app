@@ -12,10 +12,18 @@ interface MealCard {
 
 export default function FavouritesPage() {
   const [favourites, setFavourites] = useState<MealCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchFavourites() {
+    const fetchFavourites = async () => {
+      if (!getToken()) {
+        alert("Please login to view your favourites.");
+        navigate("/login");
+        return;
+      }
+
       try {
         const res = await axios.get("http://localhost:5000/api/favourites", {
           headers: { Authorization: `Bearer ${getToken()}` },
@@ -38,17 +46,20 @@ export default function FavouritesPage() {
         setFavourites(recipes);
       } catch (err) {
         console.error("Error loading favourites:", err);
+        setError("Failed to load your favourites.");
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
     fetchFavourites();
-  }, []);
+  }, [navigate]);
 
   const handleClick = (id: string) => {
     navigate(`/recipe/${id}`);
   };
 
   const removeFromFavourites = async (id: string) => {
-    console.log("Unfavouriting id:", id);
     try {
       await axios.post(
         "http://localhost:5000/api/favourites",
@@ -60,60 +71,75 @@ export default function FavouritesPage() {
       setFavourites((prev) => prev.filter((meal) => meal.id !== id));
     } catch (err) {
       console.error("Failed to unfavourite:", err);
+      alert("Failed to remove from favourites. Please try again.");
     }
   };
 
   return (
     <div className="container py-5">
       <img
-          src={logo}
-          alt="Find a Recipe"
-          style={{ maxWidth: "200px", height: "auto" }}
-        />
-      <h2 className="mb-4 text-center"> Your Favourite Recipes </h2>
-      {/* Back button */}
+        src={logo}
+        alt="Find a Recipe"
+        onClick={() => navigate("/")}
+        style={{
+          maxWidth: "250px",
+          height: "auto",
+          cursor: "pointer",
+        }}
+      />
+
+      <h2 className="mb-4 text-center">Your Favourite Recipes 💖</h2>
       <button
-        className="btn btn-secondary mb-3"
+        className="btn btn-secondary mb-4"
         onClick={() => navigate("/")}
         type="button"
       >
         ← Back to Home
       </button>
-      <div className="row">
-        {favourites.map((meal) => (
-          <div className="col-md-4 mb-4" key={meal.id}>
-            <div
-              className="card h-100"
-              style={{ cursor: "pointer", position: "relative" }}
-            >
-              <img
-                src={meal.image}
-                className="card-img-top"
-                alt={meal.name}
-                style={{ objectFit: "cover", height: "200px" }}
-                onClick={() => handleClick(meal.id)}
-              />
-              <div className="card-body">
-                <h5 className="card-title" onClick={() => handleClick(meal.id)}>
-                  {meal.name}
-                </h5>
-                {/* Unfavourite button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // prevent triggering card click
-                    removeFromFavourites(meal.id);
-                  }}
-                  className="btn btn-sm btn-danger"
-                  style={{ position: "absolute", top: "10px", right: "10px" }}
-                  aria-label="Remove from favourites"
-                >
-                  &times;
-                </button>
+
+      {loading ? (
+        <p>Loading your favourites...</p>
+      ) : error ? (
+        <p className="text-danger">{error}</p>
+      ) : favourites.length === 0 ? (
+        <p>You haven’t saved any recipes yet. Start cooking!</p>
+      ) : (
+        <div className="row">
+          {favourites.map((meal) => (
+            <div className="col-md-4 mb-4" key={meal.id}>
+              <div className="card h-100" style={{ cursor: "pointer" }}>
+                <img
+                  src={meal.image}
+                  className="card-img-top"
+                  alt={meal.name}
+                  style={{ objectFit: "cover", height: "auto" }}
+                  onClick={() => handleClick(meal.id)}
+                />
+                <div className="d-flex justify-content-end px-3 mt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromFavourites(meal.id);
+                    }}
+                    className="btn btn-sm btn-danger"
+                    aria-label="Remove from favourites"
+                  >
+                    Remove ❤️
+                  </button>
+                </div>
+                <div className="card-body">
+                  <h5
+                    className="card-title"
+                    onClick={() => handleClick(meal.id)}
+                  >
+                    {meal.name}
+                  </h5>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

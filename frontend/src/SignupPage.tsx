@@ -33,10 +33,16 @@ export default function SignupPage() {
   return (
     <div className="container py-5">
       <img
-          src={logo}
-          alt="Find a Recipe"
-          style={{ maxWidth: "200px", height: "auto" }}
-        />
+        src={logo}
+        alt="Find a Recipe"
+        onClick={() => navigate("/")}
+        style={{
+          maxWidth: "250px",
+          height: "auto",
+          cursor: "pointer",
+        }}
+      />
+
       <h2 className="mb-4 text-center">Sign Up</h2>
       <button
         className="btn btn-secondary mb-3"

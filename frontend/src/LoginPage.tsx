@@ -28,10 +28,16 @@ export default function LoginPage() {
   return (
     <div className="container py-5">
       <img
-          src={logo}
-          alt="Find a Recipe"
-          style={{ maxWidth: "200px", height: "auto" }}
-        />
+        src={logo}
+        alt="Find a Recipe"
+        onClick={() => navigate("/")}
+        style={{
+          maxWidth: "250px",
+          height: "auto",
+          cursor: "pointer",
+        }}
+      />
+
       <h2 className="mb-4 text-center">Login</h2>
       {error && <div className="alert alert-danger">{error}</div>}
 
