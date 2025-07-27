@@ -259,29 +259,57 @@ export default function HomePage() {
       )}
 
       <div className="mb-4 text-center">
-        <button
-          className="btn btn-primary me-2"
-          onClick={fetchRecipe}
-          style={{
-            backgroundColor: "#EFB72E",
-            color: "black",
-            border: "black",
-          }}
-          disabled={!selectedMeal}
-        >
-          Let's Cook!🔥
-        </button>
-        <button
-          className="btn btn-primary"
-          onClick={fetchRandomRecipe}
-          style={{
-            backgroundColor: "#65C174",
-            color: "black",
-            border: "black",
-          }}
-        >
-          Surprise Me! ✨
-        </button>
+        <div className="mb-2">
+          <button
+            className="btn btn-primary me-2"
+            onClick={fetchRecipe}
+            style={{
+              backgroundColor: "#EFB72E",
+              color: "black",
+              border: "black",
+            }}
+            disabled={!selectedMeal}
+          >
+            Let's Cook! 🔥
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={fetchRandomRecipe}
+            style={{
+              backgroundColor: "#65C174",
+              color: "black",
+              border: "black",
+            }}
+          >
+            Surprise Me! ✨
+          </button>
+        </div>
+
+        {getToken() ? (
+          <button
+            className="btn btn-secondary"
+            onClick={() => navigate("/history")}
+            style={{
+              backgroundColor: "#f0ad4e",
+              color: "black",
+              border: "black",
+            }}
+          >
+            🍽️ View your history
+          </button>
+        ) : (
+          <button
+            className="btn btn-secondary"
+            onClick={() => navigate("/login")}
+            style={{
+              backgroundColor: "#f0ad4e",
+              color: "black",
+              border: "black",
+            }}
+          >
+            🔒 Login to view your history
+          </button>
+        )}
       </div>
     </div>
   );

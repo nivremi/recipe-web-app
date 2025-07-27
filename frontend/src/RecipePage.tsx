@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import logo from "./assets/logo.png";
 import { getToken } from "./utils/auth";
+import TopBar from "./components/TopBar";
 
 interface Recipe {
   id: string;
@@ -29,7 +30,7 @@ export default function RecipePage() {
           ? `http://localhost:5000/api/recipe?meal=${id}`
           : `http://localhost:5000/api/recipe`;
 
-        const res = await axios.get(endpoint, {withCredentials: true});
+        const res = await axios.get(endpoint, { withCredentials: true });
         setRecipe(res.data);
 
         // Check favourite status if logged in
@@ -79,16 +80,7 @@ export default function RecipePage() {
 
   return (
     <div className="container py-5">
-      <img
-        src={logo}
-        alt="Find a Recipe"
-        onClick={() => navigate("/")}
-        style={{
-          maxWidth: "250px",
-          height: "auto",
-          cursor: "pointer",
-        }}
-      />
+      <TopBar />
 
       <button className="btn btn-secondary mb-3" onClick={() => navigate("/")}>
         ← Back to Home

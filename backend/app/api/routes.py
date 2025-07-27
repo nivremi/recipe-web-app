@@ -3,12 +3,14 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 import requests
 import re
 import json
+import time
 from .__init__ import api_bp
 from ..__init__ import db
 from ..models import User
 
-def cleaned_recipe(data):
-    #  Collect ingredients and measures
+
+def format_recipe(data):
+    """Format a mealDB recipe into a cleaner structure."""
     ingredients = []
     for i in range(1, 21):
         ingredient = data.get(f"strIngredient{i}")
@@ -16,145 +18,144 @@ def cleaned_recipe(data):
         if ingredient and ingredient.strip():
             ingredients.append(f"{measure.strip()} {ingredient.strip()}")
 
-    # Clean and split instructions
-    raw_instructions = data["strInstructions"] or ""
-    # Replace \r\n with actual line breaks
-    raw_instructions = raw_instructions.replace("\r\n", "\n")
-    # Split into lines
-    lines = raw_instructions.split("\n")
-    # Remove leading numbering like "0. ", "1. ", etc.
-    cleaned_steps = [re.sub(r"^\s*\d+\.\s*", "", line).strip() for line in lines if line.strip()]
+    raw_instructions = (data.get("strInstructions") or "").replace("\r\n", "\n")
+    steps = [
+        re.sub(r"^\s*\d+\.\s*", "", line).strip()
+        for line in raw_instructions.split("\n")
+        if line.strip()
+    ]
 
-    recipe = {
+    return jsonify({
         "id": data["idMeal"],
         "title": data["strMeal"],
         "description": data.get("strCategory", ""),
         "time": data.get("strArea", ""),
         "ingredients": ingredients,
-        "steps": cleaned_steps,
-        "image" : data.get("strMealThumb")
-    }
-    return jsonify(recipe)
+        "steps": steps,
+        "image": data.get("strMealThumb")
+    })
+
 
 @api_bp.route("/ingredients", methods=["GET"])
-def get_ingredients():
-    api_url = "https://www.themealdb.com/api/json/v1/1/list.php?i=list"
-    response = requests.get(api_url)
+def list_ingredients():
+    response = requests.get("https://www.themealdb.com/api/json/v1/1/list.php?i=list")
     response.raise_for_status()
     data = response.json()
 
-    ingredients = [item["strIngredient"] for item in data["meals"]]
-    return jsonify(ingredients)
+    return jsonify([item["strIngredient"] for item in data["meals"]])
+
 
 @api_bp.route("/meals", methods=["GET"])
-def get_meals():
+def meals_by_ingredient():
     ingredient = request.args.get("ingredient")
-    api_url = f"https://www.themealdb.com/api/json/v1/1/filter.php?i={ingredient}"
-    response = requests.get(api_url)
+    response = requests.get(f"https://www.themealdb.com/api/json/v1/1/filter.php?i={ingredient}")
     response.raise_for_status()
-    data = response.json()["meals"]
-    
-    # Return list of dicts with name and id
-    return jsonify([
-        {"name": meal["strMeal"], "id": meal["idMeal"]}
-        for meal in data
-    ])
+    meals = response.json().get("meals", [])
 
-def set_cookie(meal_id, data):
-    curr_cookie = get_cookies().json
-    print(f"From set cookie: {curr_cookie}")
-    if not curr_cookie or type(curr_cookie) == tuple:
-        cookie_value = []
-    else:
-        cookie_value = curr_cookie
-    cookie_value.insert(0, int(meal_id))
-    response = make_response(data)
-    response.set_cookie("meal_history", json.dumps(list(set(cookie_value))[:3]), max_age=3600, path="/")
-
-    return response
-
-
-@api_bp.route("/history", methods=["GET"])
-def get_cookies():
-    cookie_value = request.cookies.get("meal_history")
-    if cookie_value:
-        cookie_value = json.loads(cookie_value)
-        print(f"from get cookie {cookie_value}")
-        if type(cookie_value) == list and all(type(i) == int for i in cookie_value):
-            return jsonify(cookie_value)
-        else:
-            return {"msg": "Malformed Cookies"}, 200
-    else:
-        return {"msg": "View a meal to add to history"}, 404
-
-@api_bp.route("/recipe", methods=["GET"])
-def get_recipe():
-    meal_id = request.args.get("meal")
-    if meal_id:
-        api_url = f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={meal_id}"
-    else:
-        api_url = "https://www.themealdb.com/api/json/v1/1/random.php"
-
-    response = requests.get(api_url)
-    response.raise_for_status()
-
-    data = response.json()["meals"][0]
-    meal_id = data["idMeal"]
-
-    return set_cookie(meal_id, cleaned_recipe(data))
+    return jsonify([{"name": m["strMeal"], "id": m["idMeal"]} for m in meals])
 
 
 @api_bp.route("/area", methods=["GET"])
-def get_area():
-    api_url = "https://www.themealdb.com/api/json/v1/1/list.php?a=list"
-    response = requests.get(api_url)
+def list_areas():
+    response = requests.get("https://www.themealdb.com/api/json/v1/1/list.php?a=list")
     response.raise_for_status()
     data = response.json()
-    areas = [item["strArea"] for item in data["meals"]]
-    return jsonify(areas)
+
+    return jsonify([item["strArea"] for item in data["meals"]])
+
 
 @api_bp.route("/cuisine", methods=["GET"])
-def get_cuisine():
+def meals_by_area():
     area = request.args.get("area")
-    api_url = f"https://www.themealdb.com/api/json/v1/1/filter.php?a={area}"
+    response = requests.get(f"https://www.themealdb.com/api/json/v1/1/filter.php?a={area}")
+    response.raise_for_status()
+    meals = response.json().get("meals", [])
+
+    return jsonify([{"name": m["strMeal"], "id": m["idMeal"]} for m in meals])
+
+
+@api_bp.route("/recipe", methods=["GET"])
+def fetch_recipe():
+    meal_id = request.args.get("meal")
+    api_url = (
+        f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={meal_id}"
+        if meal_id else
+        "https://www.themealdb.com/api/json/v1/1/random.php"
+    )
+
     response = requests.get(api_url)
     response.raise_for_status()
-    data = response.json()["meals"]
-    
-    # Return list of dicts with name and id
-    return jsonify([
-        {"name": meal["strMeal"], "id": meal["idMeal"]}
-        for meal in data
-    ])
+    data = response.json()["meals"][0]
+
+    return store_viewed_meal(data["idMeal"], format_recipe(data))
+
+
+@api_bp.route("/history", methods=["GET"])
+def get_view_history():
+    raw_cookie = request.cookies.get("meal_history")
+    if not raw_cookie:
+        return {"msg": "View a meal to add to history"}, 404
+
+    try:
+        history = json.loads(raw_cookie)
+        if isinstance(history, list) and all(isinstance(i, dict) and "id" in i and "timestamp" in i for i in history):
+            return jsonify(history)
+        else:
+            return {"msg": "Malformed Cookies"}, 200
+    except Exception:
+        return {"msg": "Invalid Cookie Format"}, 400
+
+
+def store_viewed_meal(meal_id, response_data):
+    """Updates meal_history cookie with the new meal view."""
+    prev_cookie = get_view_history()
+    history = prev_cookie[0] if isinstance(prev_cookie, tuple) else prev_cookie.get_json()
+
+    if not isinstance(history, list):
+        history = []
+
+    history = [entry for entry in history if entry["id"] != int(meal_id)]
+    history.insert(0, {"id": int(meal_id), "timestamp": int(time.time())})
+    history = history[:9]
+
+    response = make_response(response_data)
+    response.set_cookie("meal_history", json.dumps(history), max_age=3600, path="/")
+    return response
+
+@api_bp.route("/history/clear", methods=["POST"])
+def clear_history():
+    response = make_response({"msg": "History cleared"})
+    response.set_cookie("meal_history", "", max_age=0, path="/")  # Delete the cookie
+    return response
+
 
 @api_bp.route("/favourites", methods=["GET"])
 @jwt_required()
-def get_favourites():
-    username = get_jwt_identity()
-    user = User.query.filter_by(name=username).first()
-    return jsonify([int(entry) for entry in user.favourited.split(",") if entry])
+def get_user_favourites():
+    user = User.query.filter_by(name=get_jwt_identity()).first()
+    if not user or not user.favourited:
+        return jsonify([])
+
+    return jsonify([int(mid) for mid in user.favourited.split(",") if mid.strip()])
+
 
 @api_bp.route("/favourites", methods=["POST"])
 @jwt_required()
-def post_favourites():
-    entry = request.json.get("idMeal")
-    if entry:
-        entry = str(entry)
-        username = get_jwt_identity()
-        user = User.query.filter_by(name=username).first()
-        favourited = user.favourited.split(",")
-        if favourited == [""]:
-            favourited = [entry]
-        else:
-            if entry in favourited:
-                favourited.remove(entry)
-            else:
-                favourited.append(entry)
-        user.favourited =",".join(favourited)
-        db.session.commit()
-        response = {"msg": "Success"}, 200
-    else:
-        response = {"msg": "Meal not found"}, 404
-    
-    return response
+def toggle_favourite():
+    meal_id = request.json.get("idMeal")
+    if not meal_id:
+        return {"msg": "Meal not found"}, 404
 
+    user = User.query.filter_by(name=get_jwt_identity()).first()
+    favs = user.favourited.split(",") if user.favourited else []
+
+    meal_str = str(meal_id)
+    if meal_str in favs:
+        favs.remove(meal_str)
+    else:
+        favs.append(meal_str)
+
+    user.favourited = ",".join(favs)
+    db.session.commit()
+
+    return {"msg": "Success"}, 200

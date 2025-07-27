@@ -26,7 +26,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="container py-5">
+    <div className="container py-5" style={{ maxWidth: 500 }}>
       <img
         src={logo}
         alt="Find a Recipe"
@@ -35,20 +35,13 @@ export default function LoginPage() {
           maxWidth: "250px",
           height: "auto",
           cursor: "pointer",
+          marginBottom: "1rem",
         }}
       />
 
       <h2 className="mb-4 text-center">Login</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Back button */}
-      <button
-        className="btn btn-secondary mb-3"
-        onClick={() => navigate("/")}
-        type="button"
-      >
-        ← Back to Home
-      </button>
+      {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleLogin}>
         <div className="mb-3">
@@ -70,13 +63,12 @@ export default function LoginPage() {
             required
           />
         </div>
-        <button className="btn btn-primary" type="submit">
+        <button className="btn btn-primary w-100" type="submit">
           Login
         </button>
       </form>
 
-      {/* Signup prompt */}
-      <p className="mt-3">
+      <p className="mt-3 text-center">
         Not a user yet? Sign up{" "}
         <Link
           to="/signup"

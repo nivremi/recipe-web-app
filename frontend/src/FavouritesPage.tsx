@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getToken } from "./utils/auth";
 import { useNavigate } from "react-router-dom";
-import logo from "./assets/logo.png";
+import TopBar from "./components/TopBar";
 
 interface MealCard {
   id: string;
@@ -77,17 +77,7 @@ export default function FavouritesPage() {
 
   return (
     <div className="container py-5">
-      <img
-        src={logo}
-        alt="Find a Recipe"
-        onClick={() => navigate("/")}
-        style={{
-          maxWidth: "250px",
-          height: "auto",
-          cursor: "pointer",
-        }}
-      />
-
+      <TopBar />
       <h2 className="mb-4 text-center">Your Favourite Recipes 💖</h2>
       <button
         className="btn btn-secondary mb-4"

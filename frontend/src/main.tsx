@@ -6,6 +6,7 @@ import LoginPage from "./LoginPage.tsx";
 import SignupPage from "./SignupPage.tsx";
 import FavouritesPage from "./FavouritesPage.tsx";
 import RecipePage from "./RecipePage";
+import HistoryPage from "./HistoryPage";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -18,6 +19,7 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/favourites" element={<FavouritesPage />} />
         <Route path="/recipe/:id" element={<RecipePage />} />
         <Route path="/recipe/" element={<RecipePage />} />
+        <Route path="/history" element={<HistoryPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
